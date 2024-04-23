@@ -131,7 +131,13 @@ def cleanUpList(s_list):
 # this function as the goal testing function, A* will never
 # terminate until the whole search space is exhausted.
 def goal_test(s):
-    raise NotImplementedError()
+    row = s.shape[0]
+    col = s.shape[1]
+    for i in range(row):
+        for j in range(col):
+            if (isBox(s[i, j])):
+                return False
+    return True
 
 
 # EXERCISE: Modify this function to return the list of
@@ -152,25 +158,111 @@ def goal_test(s):
 # into it to the objects found in the original. In this case, any change in the numpy array s1 will also affect
 # the original array s. Thus, you may need a deep copy (e.g, s1 = np.copy(s)) to construct an indepedent array.
 def next_states(s):
-    row, col = getKeeperPosition(s)
-    s_list = []
-    s1 = np.copy(s)
+    up = np.copy(s)
+    down = np.copy(s)
+    left = np.copy(s)
+    right = np.copy(s)
+    return cleanUpList([try_move(up, "u"), try_move(down, "d"),try_move(left, "l"),try_move(right, "r")])
 
-    # NOT IMPLEMENTED YET! YOU NEED TO FINISH THIS FUNCTION.
 
-    return cleanUpList(s_list)
 
+def getSquare(State,row, col):
+    row_len = State.shape[0]
+    col_len = State.shape[1]
+    if(row<0 or row>= row_len or col<0 or col>=col_len):
+        return wall
+    return State[row, col]
+
+def set_square(State, row, col, v):
+    State[row][col] = v   
+    
+def try_move(State,D):
+    k_pos = getKeeperPosition(State)
+    k_row = k_pos[0]
+    k_col = k_pos[1]
+    print(k_row,k_col)
+    
+    cur = blank
+    if State[k_row][k_col] == keeperstar:
+        cur = star
+
+    if D == "d":
+        mov1_row = k_row + 1
+        mov1_col = k_col
+        mov2_row = k_row + 2
+        mov2_col = k_col
+    
+    elif D == "u":
+        mov1_row = k_row - 1
+        mov1_col = k_col
+        mov2_row = k_row - 2
+        mov2_col = k_col
+
+    elif D == "l":
+        mov1_row = k_row 
+        mov1_col = k_col -1
+        mov2_row = k_row 
+        mov2_col = k_col -2
+
+    elif D == "r":
+        mov1_row = k_row 
+        mov1_col = k_col +1
+        mov2_row = k_row 
+        mov2_col = k_col +2
+
+    mov1 = getSquare(State, mov1_row, mov1_col)
+    mov2 = getSquare(State, mov2_row, mov2_col)
+       
+    if mov1 == wall: 
+        return None
+    elif mov1 == blank:
+        set_square(State, k_row, k_col, cur)
+        set_square(State, mov1_row, mov1_col, keeper)
+    elif mov1 == star:
+        set_square(State, k_row, k_col, cur)
+        set_square(State, mov1_row, mov1_col, keeperstar)    
+    elif mov1 == box:
+        if mov2 == blank: 
+            set_square(State, k_row, k_col, cur)
+            set_square(State, mov1_row, mov1_col, keeper)
+            set_square(State, mov2_row, mov2_col, box)
+        if mov2 == star:
+            set_square(State, k_row, k_col, cur)
+            set_square(State, mov1_row, mov1_col, keeper)
+            set_square(State, mov2_row, mov2_col, boxstar)    
+        if mov2 == wall: 
+            return None      
+    elif mov1 == boxstar:
+        if mov2 == blank:
+            set_square(State, k_row, k_col, cur)
+            set_square(State, mov1_row, mov1_col, keeperstar)
+            set_square(State, mov2_row, mov2_col, box)
+        if mov2 == star:
+            set_square(State, k_row, k_col, cur)
+            set_square(State, mov1_row, mov1_col, keeperstar)
+            set_square(State, mov2_row, mov2_col, boxstar)    
+        if mov2 == wall: 
+            return None  
+    
+    return State
 
 # EXERCISE: Modify this function to compute the trivial
 # admissible heuristic.
 def h0(s):
-    raise NotImplementedError()
+    return 0
 
 
 # EXERCISE: Modify this function to compute the
 # number of misplaced boxes in state s (numpy array).
 def h1(s):
-    raise NotImplementedError()
+    count = 0
+    row = s.shape[0]
+    col = s.shape[1]
+    for i in range(row):
+        for j in range(col):
+            if (isBox(s[i, j])):
+                count+=1
+    return count
 
 
 # EXERCISE: 
