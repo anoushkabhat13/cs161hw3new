@@ -165,7 +165,6 @@ def next_states(s):
     return cleanUpList([try_move(up, "u"), try_move(down, "d"),try_move(left, "l"),try_move(right, "r")])
 
 
-
 def getSquare(State,row, col):
     row_len = State.shape[0]
     col_len = State.shape[1]
@@ -180,7 +179,6 @@ def try_move(State,D):
     k_pos = getKeeperPosition(State)
     k_row = k_pos[0]
     k_col = k_pos[1]
-    print(k_row,k_col)
     
     cur = blank
     if State[k_row][k_col] == keeperstar:
@@ -212,7 +210,9 @@ def try_move(State,D):
 
     mov1 = getSquare(State, mov1_row, mov1_col)
     mov2 = getSquare(State, mov2_row, mov2_col)
-       
+    print(mov1_row, mov1_col, mov2_row, mov2_col, mov1, mov2)
+
+
     if mov1 == wall: 
         return None
     elif mov1 == blank:
@@ -226,26 +226,96 @@ def try_move(State,D):
             set_square(State, k_row, k_col, cur)
             set_square(State, mov1_row, mov1_col, keeper)
             set_square(State, mov2_row, mov2_col, box)
-        if mov2 == star:
+        elif mov2 == star:
             set_square(State, k_row, k_col, cur)
             set_square(State, mov1_row, mov1_col, keeper)
             set_square(State, mov2_row, mov2_col, boxstar)    
-        if mov2 == wall: 
+        elif mov2 == wall or mov2 == box or mov2 == boxstar: 
             return None      
     elif mov1 == boxstar:
         if mov2 == blank:
             set_square(State, k_row, k_col, cur)
             set_square(State, mov1_row, mov1_col, keeperstar)
             set_square(State, mov2_row, mov2_col, box)
-        if mov2 == star:
+        elif mov2 == star:
             set_square(State, k_row, k_col, cur)
             set_square(State, mov1_row, mov1_col, keeperstar)
             set_square(State, mov2_row, mov2_col, boxstar)    
-        if mov2 == wall: 
+        elif mov2 == wall or mov2 == boxstar or mov2 == box: 
             return None  
     
     return State
 
+a = [[0, 1, 0],
+             [1, 3, 1],
+             [0, 1, 0]]
+print(next_states(np.array(a)))
+
+b = [[1, 1, 1],
+             [0, 0, 0],
+             [1, 3, 1]]
+print(next_states(np.array(b)))
+
+c = [[0, 0, 0],
+             [0, 3, 0],
+             [0, 0, 0]]
+print(next_states(np.array(c)))
+
+d = [[1, 1, 1],
+             [1, 4, 3],
+             [1, 1, 1]]
+print(next_states(np.array(d)))
+
+e = [[1, 1, 1],
+             [3, 2, 0],
+             [1, 1, 1]]
+print(next_states(np.array(e)))
+
+f= [[1, 1, 1],
+             [3, 2, 1],
+             [1, 1, 1]]
+print(next_states(np.array(f)))
+
+g =  [[1, 1, 1],
+             [3, 2, 2],
+             [1, 1, 1]]
+print(next_states(np.array(g)))
+
+
+h = [[1, 1, 1],
+             [4, 2, 3],
+             [1, 1, 1]]
+print(next_states(np.array(h)))
+
+i = [[1, 3, 1],
+             [1, 5, 1],
+             [1, 0, 1]]
+print(next_states(np.array(i)))
+
+j = [[1, 4, 1],
+             [1, 5, 1],
+             [1, 3, 1]]
+print(next_states(np.array(j)))
+
+k = [[1, 1, 1],
+             [6, 0, 1],
+             [1, 1, 1]]
+print(next_states(np.array(k)))
+
+l = [[1, 1, 1],
+             [0, 4, 6],
+             [1, 1, 1]]
+print(next_states(np.array(l)))
+
+m =  [[1, 1, 1],
+             [3, 5, 5],
+             [1, 1, 1]]
+print(next_states(np.array(m)))
+
+n = [[1, 1, 1],
+             [3, 2, 5],
+             [1, 1, 1]]
+print(next_states(np.array(n)))
 # EXERCISE: Modify this function to compute the trivial
 # admissible heuristic.
 def h0(s):
@@ -540,10 +610,11 @@ def printlists(lists):
 
 
 if __name__ == "__main__":
-    sokoban(s1, h0)
+    print("HI")
+    #sokoban(s1, h0)
 
-    sokoban(s2, h0)
+    #sokoban(s2, h0)
 
-    sokoban(s3, h0)
+    #sokoban(s3, h0)
 
-    sokoban(s4, h0)
+    #sokoban(s4, h0)

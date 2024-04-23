@@ -8,6 +8,8 @@ input-output examples for `next_states` come directly from the spec too.
 The other test cases are invented.
 """
 
+
+
 # NOTE: The 19 predefined initial game states provided in the skeleton
 # code are divided into two categories based on difficulty:
 #
