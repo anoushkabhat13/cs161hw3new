@@ -171,13 +171,14 @@ def getSquare(State,row, col):
     row_len = State.shape[0]
     col_len = State.shape[1]
     if(row<0 or row>= row_len or col<0 or col>=col_len):
-        return None
+        return wall
     return State[row, col]
 
-#essentially sets a State[row][col] to somne value v
+#essentially sets a State[row][col] to some value v
 def set_square(State, row, col, v):
     State[row][col] = v   
     
+#go through each possibility (up, down , left, right) and basically finds the position one and 2 away from the keeper in a specific direction.  Then, performs a number of checks to see if valid to move or not. If invalid, returns none. Else performs movement and returns updated State.
 def try_move(State,D):
     k_pos = getKeeperPosition(State)
     k_row = k_pos[0]
@@ -213,9 +214,8 @@ def try_move(State,D):
 
     mov1 = getSquare(State, mov1_row, mov1_col)
     mov2 = getSquare(State, mov2_row, mov2_col)
-    if(mov1 == None):
-        return None
-    elif mov1 == wall: 
+  
+    if mov1 == wall: 
         return None
     elif mov1 == blank:
         set_square(State, k_row, k_col, cur)
