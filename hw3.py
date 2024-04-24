@@ -130,6 +130,8 @@ def cleanUpList(s_list):
 # Currently, it always returns False. If A* is called with
 # this function as the goal testing function, A* will never
 # terminate until the whole search space is exhausted.
+
+#essentially checked if there were still any Boxes on the grid, and if so returned False
 def goal_test(s):
     row = s.shape[0]
     col = s.shape[1]
@@ -164,14 +166,15 @@ def next_states(s):
     right = np.copy(s)
     return cleanUpList([try_move(up, "u"), try_move(down, "d"),try_move(left, "l"),try_move(right, "r")])
 
-
+#checks if out of bounds and returns wall, otherwise returns value in the State
 def getSquare(State,row, col):
     row_len = State.shape[0]
     col_len = State.shape[1]
     if(row<0 or row>= row_len or col<0 or col>=col_len):
-        return wall
+        return None
     return State[row, col]
 
+#essentially sets a State[row][col] to somne value v
 def set_square(State, row, col, v):
     State[row][col] = v   
     
@@ -210,10 +213,9 @@ def try_move(State,D):
 
     mov1 = getSquare(State, mov1_row, mov1_col)
     mov2 = getSquare(State, mov2_row, mov2_col)
-    print(mov1_row, mov1_col, mov2_row, mov2_col, mov1, mov2)
-
-
-    if mov1 == wall: 
+    if(mov1 == None):
+        return None
+    elif mov1 == wall: 
         return None
     elif mov1 == blank:
         set_square(State, k_row, k_col, cur)
@@ -246,6 +248,9 @@ def try_move(State,D):
     
     return State
 
+#testing for next_states
+"""
+
 a = [[0, 1, 0],
              [1, 3, 1],
              [0, 1, 0]]
@@ -255,6 +260,7 @@ b = [[1, 1, 1],
              [0, 0, 0],
              [1, 3, 1]]
 print(next_states(np.array(b)))
+
 
 c = [[0, 0, 0],
              [0, 3, 0],
@@ -316,14 +322,20 @@ n = [[1, 1, 1],
              [3, 2, 5],
              [1, 1, 1]]
 print(next_states(np.array(n)))
+"""
+
 # EXERCISE: Modify this function to compute the trivial
-# admissible heuristic.
+# admissible heuristic because you will have to move 0 only if boxes are already on goals, and if you start off this way you have already won the game. The number of moves will always be >=0 but this is only if we start off with no boxes.
+# return 0
+
 def h0(s):
     return 0
 
 
 # EXERCISE: Modify this function to compute the
 # number of misplaced boxes in state s (numpy array).
+# Yes this is admissible. Essentially just counts up the number of boxes in the grid, this is a bad but admissible hueuristic because we need to move
+# all the boxes by at least 1 to reach a goal, so we would never overestimate.
 def h1(s):
     count = 0
     row = s.shape[0]
@@ -338,10 +350,59 @@ def h1(s):
 # EXERCISE: 
 # This function will be tested in various hard examples.
 # Objective: make A* solve problems as fast as possible.
-# TODO: change the function name to hUID, where UID is your student ID
-def h123456789(s):
-    raise NotImplementedError()
+# essentially maps box to closest goal and closest keeper, and adds a large number if a box is stuck and can never be moved 
+def h605721982(s):
+    goals = findAllGoals(s)
+    keepers = findAllKeepers(s)
+    count = 0
+    for i in range(s.shape[0]):
+        for j in range(s.shape[1]):
+            if isBox(s[i, j]):
+                closest_goal = closestGoal(i, j, goals)
+                count += manhattan_dist(i, j, closest_goal[0], closest_goal[1])
+                closest_keeper = closestKeeper(i,j,keepers)
+                count+= manhattan_dist(i, j, closest_keeper[0], closest_keeper[1])-1
+                if(isStuck(s,i,j)):
+                    count += 10000000000000
+                    return count
+    return count
 
+#checks if a there is a wall on 2 adjacent edges of the box
+#if so, returns true, otherwise returns false
+def isStuck(s, i,j):
+    rows = s.shape[0]
+    cols = s.shape[1]
+    up = s[i+1][j] if i+1 < rows else wall
+    down = s[i-1][j] if i-1 >= 0 else wall
+    right = s[i][j+1] if j+1 < cols else wall
+    left = s[i][j-1] if j-1 >= 0 else wall
+    if (up == wall and right == wall) or (up == wall and left == wall) or (down == wall and right == wall) or (down == wall and left == wall):
+        return True
+    return False
+
+#iterates through s and finds all keepers and keeperstars
+def findAllKeepers(s):
+    return [(i, j) for i in range(s.shape[0]) for j in range(s.shape[1]) if isKeeper(s[i, j]) or isKeeperstar(s[i, j])]
+
+#iterates through s and finds all stars, boxStars, and KeeperStars
+def findAllGoals(s):
+    return [(i, j) for i in range(s.shape[0]) for j in range(s.shape[1]) if isStar(s[i, j]) or isBoxstar(s[i, j]) or isKeeperstar(s[i, j])]
+
+#finds the goal that is closest with manahattan distance
+def closestGoal(i, j, goals):
+    return min(goals, key=lambda goal: manhattan_dist(i, j, goal[0], goal[1]))
+
+#find the keeper that is closest with manhattan distance
+def closestKeeper(i, j, keepers):
+    if not keepers:
+        return None  # or handle the case when there are no keepers
+    return min(keepers, key=lambda keeper: manhattan_dist(i, j, keeper[0], keeper[1]))
+
+#calculates the manhattan distance, (unit wise distance with no diagonals allowed)
+def manhattan_dist(ax, ay, bx, by):
+    return abs(ax - bx) + abs(ay - by)
+
+    
 
 # Some predefined problems with initial state s (array). Sokoban function will automatically transform it to numpy
 # array. For other function, the state s is presented as a numpy array. You can just call sokoban(init-state,
@@ -372,6 +433,8 @@ s1 = [[1, 1, 1, 1, 1, 1],
       [1, 0, 0, 0, 4, 1],
       [1, 1, 1, 1, 1, 1]]
 
+
+
 # [110,10],
 s2 = [[1, 1, 1, 1, 1, 1, 1],
       [1, 0, 0, 0, 0, 0, 1],
@@ -379,6 +442,8 @@ s2 = [[1, 1, 1, 1, 1, 1, 1],
       [1, 0, 0, 2, 1, 4, 1],
       [1, 3, 0, 0, 1, 0, 1],
       [1, 1, 1, 1, 1, 1, 1]]
+
+
 
 # [211,12],
 s3 = [[1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -610,11 +675,20 @@ def printlists(lists):
 
 
 if __name__ == "__main__":
-    print("HI")
-    #sokoban(s1, h0)
+    
+    sokoban(s1, h605721982)
+    sokoban(s2, h605721982)
+    sokoban(s3, h605721982)
+    sokoban(s4, h605721982)
+    sokoban(s5, h605721982)
+    sokoban(s6, h605721982)
+    sokoban(s7, h605721982)
+    sokoban(s8, h605721982)
+    sokoban(s9, h605721982)
+    sokoban(s10, h605721982)
+    sokoban(s11, h605721982)
+    sokoban(s12, h605721982)
+    sokoban(s13, h605721982)
+    sokoban(s14, h605721982)
+    sokoban(s15, h605721982)
 
-    #sokoban(s2, h0)
-
-    #sokoban(s3, h0)
-
-    #sokoban(s4, h0)
